@@ -1,0 +1,93 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\geometry{margin=2.2cm}
+\hypersetup{hidelinks}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\begin{document}
+\begin{center}
+{\Large\bfseries TurnoJusto: turnos de atención distribuidos}\\[0.15cm]
+{\bfseries Informe de avance --- AP-U1, Grupo 2}\\[0.15cm]
+Aplicaciones Distribuidas (ISR-701)\\
+Cedeño Intriago Jilmar Jesús
+\end{center}
+
+\textbf{Repositorio GitHub:} \url{https://github.com/jcedenoi4/AP-U1-Cedeno-Jilmar}
+
+\section*{1. Objetivo y alcance}
+Desarrollar un prototipo de atención distribuida en Java mediante sockets TCP. El coordinador central debe recibir solicitudes de las ventanillas y asignar turnos consecutivos respetando el cupo. El avance actual comprende la conexión entre procesos, el intercambio de mensajes y la validación del formato, el comando y el token.
+
+\section*{2. Arquitectura implementada hasta ahora}
+El programa \texttt{src/coordinador.java} abre un servidor TCP, acepta una conexión a la vez y lee una línea por conexión. \texttt{src/ventanillas.java} lee la dirección y el puerto de \texttt{config.properties}, envía una solicitud y lee la respuesta. El servidor cierra la conexión después de responder y queda a la espera de la siguiente.
+
+\begin{center}
+\fbox{\begin{minipage}{0.86\linewidth}\centering
+Ventanilla (cliente TCP)\\[2mm]
+$\downarrow$ Solicitud: \texttt{TURNO turno1}\\[2mm]
+Coordinador (servidor TCP)\\[2mm]
+$\downarrow$ Validación de formato, comando y token\\[2mm]
+Respuesta por el mismo socket TCP
+\end{minipage}}
+\end{center}
+
+\section*{3. Configuración y comunicación}
+El archivo \texttt{config.properties} define el cupo en 10, el host en \texttt{127.0.0.1}, el puerto en \texttt{5000} y el token de prueba \texttt{turno1}. La ventanilla utiliza el host y el puerto del archivo y envía el token de prueba escrito en el mensaje. El coordinador lo compara con el valor cargado de la configuración.
+
+\begin{center}
+\begin{tabular}{@{}p{6cm}p{8cm}@{}}
+\toprule
+\textbf{Solicitud} & \textbf{Respuesta definida en el código}\\
+\midrule
+\texttt{TURNO turno1} & \texttt{Recibido}\\
+\texttt{TURNO} & \texttt{Formato\_Invalido}\\
+\texttt{HOLA turno1} & \texttt{Comando Invalido}\\
+\texttt{TURNO incorrecto} & \texttt{Token Invalido}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{4. Control de turnos}
+El coordinador lee el cupo y responde \texttt{Recibido} cuando la solicitud es válida. Queda pendiente numerar los turnos, descontarlos del cupo y responder \texttt{CUPO\_AGOTADO} al llegar al límite. La atención secuencial del servidor permite revisar el intercambio básico. La ejecución simultánea de tres ventanillas requiere una prueba de concurrencia.
+
+\newpage
+\section*{5. Estado de escenarios y evidencias}
+La tabla registra lo que puede sustentarse con el código del repositorio y las pruebas que faltan por documentar.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{1cm}p{6.1cm}p{7.1cm}@{}}
+\toprule
+\textbf{Esc.} & \textbf{Prueba requerida} & \textbf{Estado actual}\\
+\midrule
+E0 & Preparación sin red y registro inicial & Evidencia pendiente\\
+E1 & Operación normal de turnos y llamadas & Intercambio TCP implementado. Numeración y llamadas pendientes\\
+E2 & Cupo agotado y token inválido & Validación de token implementada. Control de cupo pendiente\\
+E3 & Carga simultánea y modo inseguro & Pendiente\\
+E4 & Caída y recuperación de V3 & Pendiente\\
+E5 & Caída del coordinador & Pendiente\\
+E6 & Orden total con Lamport & Pendiente\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{6. Análisis pendiente de resultados}
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Concurrencia (E3).} Comparar los modos normal e inseguro con 30 solicitudes simultáneas y registrar cuántas se aceptan y si aparecen turnos duplicados.
+\item \textbf{Disponibilidad (E5).} Observar la respuesta de las ventanillas al detener el coordinador y relacionar el resultado con CAP. Evaluar la replicación del coordinador y el riesgo de asignar el mismo número tras un fallo.
+\item \textbf{Detección de fallos (E4).} Evaluar latidos cada 2 segundos, un umbral de 6 segundos y el efecto de una latencia de 7 segundos sobre la detección.
+\item \textbf{Orden total (E6).} Registrar los valores de los relojes de Lamport, identificar pares causales y comprobar el orden de los eventos.
+\end{enumerate}
+
+\section*{7. Trabajo restante}
+Completar la asignación de turnos y los comandos \texttt{llamar} y \texttt{estado}. Implementar la prueba de carga y el modo \texttt{--inseguro}, los latidos y el orden total. Los archivos \texttt{src/pruebaCarga.java} y \texttt{src/ordenTotal.java} contienen por ahora clases vacías. Después de ejecutar E0--E6, incorporar al informe los resultados y las evidencias de cada escenario.
+
+\end{document}
