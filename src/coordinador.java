@@ -1,5 +1,4 @@
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
@@ -22,11 +21,37 @@ public class coordinador {
 
             try(ServerSocket servidor = new ServerSocket(puerto)){
                 System.out.println("Esperando Conexion");
-                while (true){
-                    Socket cliente = servidor.accept();
-                    System.out.println("Nueva Conexion: " + cliente.getInetAddress());
-                    cliente.close();
 
+                while (true){
+
+                    try(Socket cliente = servidor.accept()){
+
+                        System.out.println("Nueva Conexion: " + cliente.getInetAddress());
+                        BufferedReader entrada = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
+                        PrintWriter salida = new PrintWriter(cliente.getOutputStream(), true);
+
+                        String mensaje = entrada.readLine();
+                        if (mensaje == null || mensaje.isBlank()){
+                            salida.println("Formato_Invalido");
+                        }else{
+                            String[] partes = mensaje.trim().split("\\s+");
+                            if (partes.length != 2){
+                                salida.println("Formato_Invalido");
+                            }else{
+                                System.out.println("Comando: " + partes[0]);
+                                System.out.println("Token Recibido: " + partes[1]);
+
+
+                                if (!"TURNO".equalsIgnoreCase(partes[0])){
+                                    salida.println("Comando Invalido");
+                                } else if (!token.equals(partes[1])){
+                                    salida.println("Token Invalido");
+                                }else{
+                                    salida.println("Recibido");
+                                }
+                            }
+                        }
+                    }
                 }
             }
         } catch (IOException | NumberFormatException e) {

@@ -1,5 +1,4 @@
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.Properties;
 
@@ -16,6 +15,14 @@ public class ventanillas {
                 System.out.println("Conexion Establecida");
                 System.out.println("Coordinador: " + host);
                 System.out.println("Puerto: " + puerto);
+
+                PrintWriter salida = new PrintWriter(conexion.getOutputStream(),true);
+                BufferedReader entrada = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
+                salida.println("TURNO turno1");
+                String respuesta = entrada.readLine();
+                System.out.println("Respuesta: " + respuesta);
+
+
             }
 
         } catch (IOException | NumberFormatException e) {
